@@ -1,17 +1,3 @@
-'''
-
-
-
-
-
-Note to self, please update code to utilise the name of the shortcut.
-Most of the csv modules (amongst others) require updates to support the change.
-
-
-
-
-
-'''
 import os
 try:
     from pynput import keyboard
@@ -22,6 +8,11 @@ import time
 import threading
 
 os.chdir(os.path.dirname(__file__))
+
+# check if keylogger.csv exists
+if not os.path.exists("keylogger.csv"):
+    with open("keylogger.csv", 'w') as f:
+        f.write("")
 
 recording = False
 
@@ -90,12 +81,13 @@ class KeyLogger:
 
 def onPress(key):
     """
-    E.
+    Adds the given key to the currentKeys list if it is not already present.
 
-    :param key: The key to be passed to the `keystrokeRecorder` method.
-    :type key: Any
+    Parameters:
+        key (str): The key to be added to the currentKeys list.
 
-    :return: None
+    Returns:
+        None
     """
     global recording
     id = keyLogger.keystrokeRecorder(key, recording)
@@ -123,6 +115,7 @@ def stopRecording():
 # |------------|-------------------|--------------|--------------|--------------|
 # | 0          | {'Key.ctrl', 'm'} | echo Pass    | 1/1/1970     | Pass         |
 # | 1          | {'Key.cmd', ';'}  | echo Pass1   | 1/1/2000     | Pass1        |
+# |------------|-------------------|--------------|--------------|--------------|
 
 def csvParser(filename):
     parsedData = []
@@ -141,13 +134,16 @@ def csvParser(filename):
     return parsedData
 
 def csvWriter(filename, parsedData):
+    largestID = 0
     with open(filename, 'r') as f:
         reader = csv.reader(f)
         for row in reader:
+            if row == []:
+                continue
             largestID = int(row[0])
     with open(filename, 'a') as f:
         writer = csv.writer(f)
-        writer.writerow([largestID+1, parsedData[0], parsedData[1], parsedData[2]])
+        writer.writerow([largestID+1, parsedData[0], parsedData[1], parsedData[2], parsedData[3]])
 
         '''
         
@@ -163,9 +159,9 @@ def csvShortcutDeleter(filename, id, parsedData):
         writer = csv.writer(f)
         for currentID, shortcut in enumerate(parsedData):
             if currentID != id:
-                print([correctedID, shortcut[0], shortcut[1], shortcut[2]])
+                print([correctedID, shortcut[0], shortcut[1], shortcut[2], shortcut[3]])
                 print("ID of", currentID)
-                writer.writerow([correctedID, shortcut[0], shortcut[1], shortcut[2]])
+                writer.writerow([correctedID, shortcut[0], shortcut[1], shortcut[2], shortcut[3]])
                 correctedID += 1
             else:
                 print("Skipping ID", id)
@@ -191,11 +187,12 @@ def keyboardListener():
 thread = threading.Thread(target=keyboardListener)
 thread.start()
 
-def tkinterEditingMode(command):
+def tkinterEditingMode(name, command):
     pass
 
 def editingMode():
     if "y"==input("Create shortcut? (y/n): "):
+        name = input("Enter shortcut name: ")
         startRecording()
         print("Recording started. Please hold shortcut for 3 seconds.")
         time.sleep(2.5)
@@ -204,7 +201,7 @@ def editingMode():
         print(f"Captured shortcut: {shortcut}")
         keyLogger.recordedKeys = []
         command = input("Enter action: ")
-        shortcutData = [shortcut, command, time.strftime("%d/%m/%Y")]
+        shortcutData = [shortcut, command, time.strftime("%d/%m/%Y"), name]
         csvWriter("keylogger.csv", shortcutData)
         print("The shortcut has been saved. Please restart the program for the changes to take effect.")
     else:
