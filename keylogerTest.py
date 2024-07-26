@@ -104,10 +104,10 @@ def startRecording():
 def stopRecording():
     global recording
     recording = False
-    return keyLogger.recordedKeys
+    return set(keyLogger.recordedKeys)
 
 # Usage
-# Format for keystrokes: 
+# Format for keystrokes:
 #   [[{'Key.ctrl', 'm'}, batchCommand], [{'Key.cmd', ';'}, batchCommand]... ]
 
 # # CSV format
@@ -146,9 +146,9 @@ def csvWriter(filename, parsedData):
         writer.writerow([largestID+1, parsedData[0], parsedData[1], parsedData[2], parsedData[3]])
 
         '''
-        
+
         Note that the above code assumes that there is a newline created at the end of the file. Please check the file.
-        
+
         Lucky me, it works.
 
         '''
@@ -210,4 +210,3 @@ def editingMode():
 
 while True:
     editingMode() if "y"==input("Edit shortcuts? (y/n): ") else False
-
