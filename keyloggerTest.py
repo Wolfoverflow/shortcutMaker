@@ -136,16 +136,16 @@ def csvParser(filename):
     return parsedData
 
 def csvWriter(filename, parsedData):
-    largestID = 0
+    allottedID = 0
     with open(filename, 'r') as f:
         reader = csv.reader(f)
         for row in reader:
             if row == []:
                 continue
-            largestID = int(row[0])
+            allottedID = int(row[0]) + 1
     with open(filename, 'a') as f:
         writer = csv.writer(f)
-        writer.writerow([largestID+1, parsedData[0], parsedData[1], parsedData[2], parsedData[3]])
+        writer.writerow([largestID, parsedData[0], parsedData[1], parsedData[2], parsedData[3]])
 
         '''
 
