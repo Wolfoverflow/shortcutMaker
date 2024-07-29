@@ -3,6 +3,7 @@ try:
     from pynput import keyboard
 except ModuleNotFoundError:
     os.system("py -m pip install pynput")
+    from pynput import keyboard
 import csv
 import time
 import threading
@@ -15,6 +16,7 @@ if not os.path.exists("keylogger.csv"):
         f.write("")
 
 recording = False
+keystrokes = []
 
 class KeyLogger:
     def __init__(self, keystrokes):
@@ -154,6 +156,7 @@ def csvWriter(filename, parsedData):
         '''
 
 def csvShortcutDeleter(filename, id, parsedData):
+    global keystrokes
     correctedID = 0
     with open(filename, 'w') as f:
         writer = csv.writer(f)
@@ -165,6 +168,7 @@ def csvShortcutDeleter(filename, id, parsedData):
                 correctedID += 1
             else:
                 print("Skipping ID", id)
+    keystrokes = keystrokeParser(csvParser("keylogger.csv"))
 
 
 def keystrokeParser(parsedData):
@@ -187,10 +191,11 @@ def keyboardListener():
 thread = threading.Thread(target=keyboardListener)
 thread.start()
 
-def tkinterEditingMode(name, command):
+def commandParser(name, command):
     pass
 
 def editingMode():
+    global keystrokes
     if "y"==input("Create shortcut? (y/n): "):
         name = input("Enter shortcut name: ")
         startRecording()
@@ -203,10 +208,16 @@ def editingMode():
         command = input("Enter action: ")
         shortcutData = [shortcut, command, time.strftime("%d/%m/%Y"), name]
         csvWriter("keylogger.csv", shortcutData)
-        print("The shortcut has been saved. Please restart the program for the changes to take effect.")
+        keystrokes = keystrokeParser(csvParser("keylogger.csv"))
+        print("The shortcut has been saved.")
     else:
         id = int(input("Enter shortcut ID to delete: "))
         csvShortcutDeleter("keylogger.csv", id, csvParser("keylogger.csv"))
 
+# Note: The following section will no longer be utilised in the tkinter version.
 while True:
-    editingMode() if "y"==input("Edit shortcuts? (y/n): ") else False
+    try:
+        editingMode() if "y"==input("Edit shortcuts? (y/n): ") else False
+    except KeyboardInterrupt:
+        print("Quitting keylogger...")
+        os.kill(os.getpid(), 9)
