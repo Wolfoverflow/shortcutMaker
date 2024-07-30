@@ -35,7 +35,7 @@ def contentRenderer(shortcuts):
         lblCommands = tk.Label(frmContent, text=commands, bg="Black", fg="White", font=("Courier New", 11))
         lblCommands.place(relx=0.35, rely=0.5)
    
-        
+
 
 window=tk.Tk()
 icon=tk.PhotoImage(file='shortcutmanagericon.ico')
