@@ -126,26 +126,27 @@ def csvParser(filename):
         for row in reader:
             if row == []:
                 continue
-            keys = set(eval(row[1]))
+            id = row[0]
+            keys = (row[1])
             batchCommand = row[2]
             creationDate = row[3]
             name = row[4]
-            parsedRow = [keys, batchCommand, creationDate, name]
+            parsedRow = [row, keys, batchCommand, creationDate, name]
             parsedData.append(parsedRow)
 
     return parsedData
 
 def csvWriter(filename, parsedData):
-    allottedID = 0
+    largestID = 0
     with open(filename, 'r') as f:
         reader = csv.reader(f)
         for row in reader:
             if row == []:
                 continue
-            allottedID = int(row[0]) + 1
+            largestID = int(row[0])
     with open(filename, 'a') as f:
         writer = csv.writer(f)
-        writer.writerow([allottedID, parsedData[0], parsedData[1], parsedData[2], parsedData[3]])
+        writer.writerow([largestID+1, parsedData[0], parsedData[1], parsedData[2], parsedData[3]])
 
         '''
 
@@ -199,8 +200,8 @@ def editingMode():
     if "y"==input("Create shortcut? (y/n): "):
         name = input("Enter shortcut name: ")
         startRecording()
-        print("Recording started. Please hold shortcut for 3 seconds.")
-        time.sleep(2.5)
+        print("Recording started. Please hold shortcut for 5 seconds.")
+        time.sleep(4.5)
         shortcut = stopRecording()
         time.sleep(0.5)
         print(f"Captured shortcut: {shortcut}")
@@ -215,9 +216,9 @@ def editingMode():
         csvShortcutDeleter("keylogger.csv", id, csvParser("keylogger.csv"))
 
 # Note: The following section will no longer be utilised in the tkinter version.
-while True:
-    try:
-        editingMode() if "y"==input("Edit shortcuts? (y/n): ") else False
-    except KeyboardInterrupt:
-        print("Quitting keylogger...")
-        os.kill(os.getpid(), 9)
+# while True:
+#     try:
+#         editingMode() if "y"==input("Edit shortcuts? (y/n): ") else False
+#     except KeyboardInterrupt:
+#         print("Quitting keylogger...")
+#         os.kill(os.getpid(), 9)
