@@ -21,10 +21,10 @@ def contentRenderer(shortcuts):
     canvas.create_window((0, 0), window=frmContent, anchor=tk.NW)
 
     for i, shortcut in enumerate(shortcuts):
-        keystrokes = str(list(shortcut[0]))
-        commands = shortcut[1]
-        date = shortcut[2]
-        name = shortcut[3]
+        keystrokes = shortcut[1]
+        commands = shortcut[2]
+        date = shortcut[3]
+        name = shortcut[4]
         if len(str(keystrokes)) > 25:
             if str(keystrokes)[22] == '.':
                 keystrokes = str(keystrokes)[:22] + '..'
@@ -52,9 +52,11 @@ def contentRenderer(shortcuts):
     frmBufferRow = tk.Frame(frmContent, bg="Black", width=290, height=24)
     frmBufferRow.pack(side=tk.TOP, pady=2, padx=5)
     bttnNew = tk.Button(frmBody, width=13, text="New +", bg="Black", fg="White", font=("Arial", 9))
+    bttnNew.configure(command=new)
     bttnNew.place(relx=0.005, rely=0.86)
 
     bttnDelete = tk.Button(frmBody, width=13, text="Delete -", bg="Black", fg="White", font=("Arial", 9))
+    bttnDelete.configure(command=delete)
     bttnDelete.place(relx=0.315, rely=0.86)
 
     bttnEdit = tk.Button(frmBody, width=13, text="Edit %", bg="Black", fg="White", font=("Arial", 9))
@@ -129,13 +131,13 @@ def edit(i, frmContentRow, frmContent):
     
     entrEditName = tk.Entry(frmEdit, width=20, font=("Arial", 12), bg='Black', fg='White')
     entrEditName.place(relx=0.4, rely=0.5)
-    entrEditName.insert(0, shortcuts[selected][3])
+    entrEditName.insert(0, shortcuts[selected][4])
     entrEditKeystrokes = tk.Entry(frmEdit, width=20, font=("Arial", 12), bg='Black', fg='White')
     entrEditKeystrokes.place(relx=0.4, rely=0.6)
-    entrEditKeystrokes.insert(0, shortcuts[selected][0])
+    entrEditKeystrokes.insert(0, shortcuts[selected][1])
     entrEditCommands = tk.Entry(frmEdit, width=20, font=("Arial", 12), bg='Black', fg='White')
     entrEditCommands.place(relx=0.4, rely=0.7)
-    entrEditCommands.insert(0, shortcuts[selected][1])
+    entrEditCommands.insert(0, shortcuts[selected][2])
 
     bttnEditSave = tk.Button(frmEdit, text="Save", bg="Black", fg="White", font=("Arial", 12))
     bttnEditSave.place(relx=0.5, rely=0.8, anchor=tk.CENTER)
@@ -166,11 +168,10 @@ def save(i, frmContentRow, frmContent, entrEditName, entrEditKeystrokes, entrEdi
         writer = csv.writer(file)
         for index, shortcut in enumerate(shortcuts):
             if index == i:
-                writer.writerow([index,entrEditKeystrokes.get(), entrEditCommands.get(), shortcut[2], entrEditName.get()])
+                writer.writerow([index,entrEditKeystrokes.get(), entrEditCommands.get(), shortcut[3], entrEditName.get()])
             else:
-                buffer = shortcut
-                buffer.insert(0,index)
-                writer.writerow(buffer)
+                
+                writer.writerow(shortcut)
     
 
     shortcuts = kl.csvParser('keylogger.csv')
@@ -188,6 +189,88 @@ def refreshcontent():
     for widget in frmBody.winfo_children():
         widget.destroy()
     contentRenderer(shortcuts)
+
+def delete():
+    global selected
+    global shortcuts    
+    #update the csv file
+    with open('keylogger.csv', 'w', newline='') as file:
+        writer = csv.writer(file)
+        for index, shortcut in enumerate(shortcuts):
+            if index != selected:
+                
+                writer.writerow(shortcut)
+            else:
+                print(f'deleting {index}')
+    
+
+    shortcuts = kl.csvParser('keylogger.csv')
+
+    refreshcontent()
+
+def new():
+    global homepage
+    global editpage
+    homepage = False
+    editpage = True
+    # make new window for creating a new shortcut
+    new_window = tk.Toplevel(window)
+    new_window.title("New Shortcut")
+    new_window.geometry("400x200")
+    new_window.config(bg="Black")
+
+    frmNew = tk.Frame(new_window, bg="Black", width=400, height=200)
+    frmNew.pack()
+
+    lblNewTitle = tk.Label(frmNew, text="New Shortcut", font=("Arial", 14), fg="White", bg="Black")
+    lblNewTitle.place(relx=0.5, rely=0.3, anchor=tk.CENTER)
+    lblNewName = tk.Label(frmNew, text="Name:", font=("Arial", 12), fg="White", bg="Black")
+    lblNewName.place(relx=0.1, rely=0.5)
+    lblNewKeystrokes = tk.Label(frmNew, text="Keystrokes:", font=("Arial", 12), fg="White", bg="Black")
+    lblNewKeystrokes.place(relx=0.1, rely=0.6)
+    lblNewCommands = tk.Label(frmNew, text="Commands:", font=("Arial", 12), fg="White", bg="Black")
+    lblNewCommands.place(relx=0.1, rely=0.7)
+
+    entrNewName = tk.Entry(frmNew, width=20, font=("Arial", 12), bg='Black', fg='White')
+    entrNewName.place(relx=0.4, rely=0.5)
+    entrNewKeystrokes = tk.Entry(frmNew, width=20, font=("Arial", 12), bg='Black', fg='White')
+    entrNewKeystrokes.place(relx=0.4, rely=0.6)
+    entrNewCommands = tk.Entry(frmNew, width=20, font=("Arial", 12), bg='Black', fg='White')
+    entrNewCommands.place(relx=0.4, rely=0.7)
+
+    bttnNewSave = tk.Button(frmNew, text="Save", bg="Black", fg="White", font=("Arial", 12))
+    bttnNewSave.place(relx=0.5, rely=0.8, anchor=tk.CENTER)
+    bttnNewSave.configure(command=lambda: saveNew(entrNewName, entrNewKeystrokes, entrNewCommands, new_window))
+
+    bttnNewCancel = tk.Button(frmNew, text="Cancel", bg="Black", fg="White", font=("Arial", 12))
+    bttnNewCancel.place(relx=0.8, rely=0.8, anchor=tk.CENTER)
+    bttnNewCancel.configure(command=lambda: cancelNew(new_window))
+
+def saveNew(entrNewName, entrNewKeystrokes, entrNewCommands, new_window):
+    global shortcuts
+    print("Save New")
+    print(entrNewName.get())
+    print(entrNewKeystrokes.get())
+    print(entrNewCommands.get())
+
+    # input validation TODO
+
+    # append the new shortcut to the csv file
+    with open('keylogger.csv', 'a', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow([len(shortcuts), entrNewKeystrokes.get(), entrNewCommands.get(), "", entrNewName.get()])
+
+    shortcuts = kl.csvParser('keylogger.csv')
+    refreshcontent()
+    cancelNew(new_window)
+
+def cancelNew(new_window):
+    new_window.destroy()
+    global homepage
+    global editpage
+    homepage = True
+    editpage = False
+
 
 
 window.protocol("WM_DELETE_WINDOW", closing)
