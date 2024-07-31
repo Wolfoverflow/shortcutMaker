@@ -3,10 +3,12 @@ from tkinter import messagebox
 import csv
 import keyloggerTest as kl
 import os
+import time
 
 selected = None
 homepage = True
 editpage = False
+returnedkeystrokes = None
 shortcuts = kl.csvParser('keylogger.csv')
 print(shortcuts)
 
@@ -36,9 +38,15 @@ def contentRenderer(shortcuts):
             else:
                 commands = str(commands)[:15] + '...'
 
+        if len(str(name)) > 7:
+            if str(name)[4] == '.':
+                name = str(name)[:4] + '..'
+            else:
+                name = str(name)[:4] + '...'
+
         frmContentRow = tk.Frame(frmContent, bg="Black", width=290, height=50, highlightbackground="White", highlightthickness=1)
         frmContentRow.pack(side=tk.TOP, pady=2, padx=5, anchor=tk.W)
-        lblName = tk.Label(frmContentRow, text=str(i) + ' - ' + name, bg="Black", fg="White", font=("Courier New", 11, 'bold'))
+        lblName = tk.Label(frmContentRow, text=str(i+1) + ' - ' + name, bg="Black", fg="White", font=("Courier New", 11, 'bold'))
         lblName.place(relx=0.0, rely=0.0)
         lblDate = tk.Label(frmContentRow, text=date, bg="Black", fg="#dddddd", font=("Courier New", 9, 'bold'))
         lblDate.place(relx=0.0, rely=0.5)
@@ -121,30 +129,30 @@ def edit(i, frmContentRow, frmContent):
     frmEdit.pack()
 
     lblEditTitle = tk.Label(frmEdit, text="Edit Shortcut", font=("Arial", 14), fg="White", bg="Black")
-    lblEditTitle.place(relx=0.5, rely=0.3, anchor=tk.CENTER)
+    lblEditTitle.place(relx=0.5, rely=0.15, anchor=tk.CENTER)
     lblEditName = tk.Label(frmEdit, text="Name:", font=("Arial", 12), fg="White", bg="Black")
-    lblEditName.place(relx=0.1, rely=0.5)
+    lblEditName.place(relx=0.1, rely=0.3)
     lblEditKeystrokes = tk.Label(frmEdit, text="Keystrokes:", font=("Arial", 12), fg="White", bg="Black")
-    lblEditKeystrokes.place(relx=0.1, rely=0.6)
+    lblEditKeystrokes.place(relx=0.1, rely=0.42)
     lblEditCommands = tk.Label(frmEdit, text="Commands:", font=("Arial", 12), fg="White", bg="Black")
-    lblEditCommands.place(relx=0.1, rely=0.7)
+    lblEditCommands.place(relx=0.1, rely=0.54)
     
     entrEditName = tk.Entry(frmEdit, width=20, font=("Arial", 12), bg='Black', fg='White')
-    entrEditName.place(relx=0.4, rely=0.5)
-    entrEditName.insert(0, shortcuts[selected][4])
-    entrEditKeystrokes = tk.Entry(frmEdit, width=20, font=("Arial", 12), bg='Black', fg='White')
-    entrEditKeystrokes.place(relx=0.4, rely=0.6)
-    entrEditKeystrokes.insert(0, shortcuts[selected][1])
+    entrEditName.place(relx=0.4, rely=0.3)
+
+    bttnEditKeystrokes = tk.Button(frmEdit, width=20, font=("Arial", 12), bg='Black', fg='White', text='Record Keystrokes', command=recordkeystrokes)
+    bttnEditKeystrokes.place(relx=0.4, rely=0.42)
+    
     entrEditCommands = tk.Entry(frmEdit, width=20, font=("Arial", 12), bg='Black', fg='White')
-    entrEditCommands.place(relx=0.4, rely=0.7)
-    entrEditCommands.insert(0, shortcuts[selected][2])
+    entrEditCommands.place(relx=0.4, rely=0.59)
+
 
     bttnEditSave = tk.Button(frmEdit, text="Save", bg="Black", fg="White", font=("Arial", 12))
-    bttnEditSave.place(relx=0.5, rely=0.8, anchor=tk.CENTER)
-    bttnEditSave.configure(command=lambda i=i, frmContentRow=frmContentRow, frmContent=frmContent: save(i, frmContentRow, frmContent, entrEditName, entrEditKeystrokes, entrEditCommands, new_window))
+    bttnEditSave.place(relx=0.47, rely=0.8, anchor=tk.CENTER)
+    bttnEditSave.configure(command=lambda i=i, frmContentRow=frmContentRow, frmContent=frmContent: save(i, frmContentRow, frmContent, entrEditName, returnedkeystrokes, entrEditCommands, new_window))
 
     bttnEditCancel = tk.Button(frmEdit, text="Cancel", bg="Black", fg="White", font=("Arial", 12))
-    bttnEditCancel.place(relx=0.8, rely=0.8, anchor=tk.CENTER)
+    bttnEditCancel.place(relx=0.62, rely=0.8, anchor=tk.CENTER)
     bttnEditCancel.configure(command=lambda: cancel(new_window))
     
 
@@ -153,13 +161,18 @@ def edit(i, frmContentRow, frmContent):
     new_window.mainloop()
     print(i)
 
+def recordkeystrokes():
+    global returnedkeystrokes
+    kl.startRecording()
+    print("Recording started. Please hold shortcut for 5 seconds.")
+    time.sleep(4.5)
+    shortcut = kl.stopRecording()
+    time.sleep(0.5)
+    print(f"Captured shortcut: {shortcut}")
+
 def save(i, frmContentRow, frmContent, entrEditName, entrEditKeystrokes, entrEditCommands, new_window):
     global shortcuts
-    print("Save")
-    print(i)
-    print(entrEditName.get())
-    print(entrEditKeystrokes.get())
-    print(entrEditCommands.get())
+    
     
     #input validation TODO
     
@@ -168,7 +181,7 @@ def save(i, frmContentRow, frmContent, entrEditName, entrEditKeystrokes, entrEdi
         writer = csv.writer(file)
         for index, shortcut in enumerate(shortcuts):
             if index == i:
-                writer.writerow([index,entrEditKeystrokes.get(), entrEditCommands.get(), shortcut[3], entrEditName.get()])
+                writer.writerow([index,returnedkeystrokes, entrEditCommands.get(), shortcut[3], entrEditName.get()])
             else:
                 
                 writer.writerow(shortcut)
@@ -223,27 +236,27 @@ def new():
     frmNew.pack()
 
     lblNewTitle = tk.Label(frmNew, text="New Shortcut", font=("Arial", 14), fg="White", bg="Black")
-    lblNewTitle.place(relx=0.5, rely=0.3, anchor=tk.CENTER)
+    lblNewTitle.place(relx=0.5, rely=0.15, anchor=tk.CENTER)
     lblNewName = tk.Label(frmNew, text="Name:", font=("Arial", 12), fg="White", bg="Black")
-    lblNewName.place(relx=0.1, rely=0.5)
+    lblNewName.place(relx=0.1, rely=0.3)
     lblNewKeystrokes = tk.Label(frmNew, text="Keystrokes:", font=("Arial", 12), fg="White", bg="Black")
-    lblNewKeystrokes.place(relx=0.1, rely=0.6)
+    lblNewKeystrokes.place(relx=0.1, rely=0.42)
     lblNewCommands = tk.Label(frmNew, text="Commands:", font=("Arial", 12), fg="White", bg="Black")
-    lblNewCommands.place(relx=0.1, rely=0.7)
+    lblNewCommands.place(relx=0.1, rely=0.54)
 
     entrNewName = tk.Entry(frmNew, width=20, font=("Arial", 12), bg='Black', fg='White')
-    entrNewName.place(relx=0.4, rely=0.5)
+    entrNewName.place(relx=0.4, rely=0.3)
     entrNewKeystrokes = tk.Entry(frmNew, width=20, font=("Arial", 12), bg='Black', fg='White')
-    entrNewKeystrokes.place(relx=0.4, rely=0.6)
+    entrNewKeystrokes.place(relx=0.4, rely=0.42)
     entrNewCommands = tk.Entry(frmNew, width=20, font=("Arial", 12), bg='Black', fg='White')
-    entrNewCommands.place(relx=0.4, rely=0.7)
+    entrNewCommands.place(relx=0.4, rely=0.54)
 
     bttnNewSave = tk.Button(frmNew, text="Save", bg="Black", fg="White", font=("Arial", 12))
-    bttnNewSave.place(relx=0.5, rely=0.8, anchor=tk.CENTER)
+    bttnNewSave.place(relx=0.47, rely=0.8, anchor=tk.CENTER)
     bttnNewSave.configure(command=lambda: saveNew(entrNewName, entrNewKeystrokes, entrNewCommands, new_window))
 
     bttnNewCancel = tk.Button(frmNew, text="Cancel", bg="Black", fg="White", font=("Arial", 12))
-    bttnNewCancel.place(relx=0.8, rely=0.8, anchor=tk.CENTER)
+    bttnNewCancel.place(relx=0.62, rely=0.8, anchor=tk.CENTER)
     bttnNewCancel.configure(command=lambda: cancelNew(new_window))
 
 def saveNew(entrNewName, entrNewKeystrokes, entrNewCommands, new_window):
@@ -258,8 +271,7 @@ def saveNew(entrNewName, entrNewKeystrokes, entrNewCommands, new_window):
     # append the new shortcut to the csv file
     with open('keylogger.csv', 'a', newline='') as file:
         writer = csv.writer(file)
-        writer.writerow([len(shortcuts), entrNewKeystrokes.get(), entrNewCommands.get(), "", entrNewName.get()])
-
+        writer.writerow([len(shortcuts)+1, entrNewKeystrokes.get(), entrNewCommands.get(), kl.getToday(), entrNewName.get()])
     shortcuts = kl.csvParser('keylogger.csv')
     refreshcontent()
     cancelNew(new_window)
