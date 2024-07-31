@@ -185,6 +185,8 @@ def cancel(new_window):
     editpage = False
 
 def refreshcontent():
+    for widget in frmBody.winfo_children():
+        widget.destroy()
     contentRenderer(shortcuts)
 
 
