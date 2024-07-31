@@ -145,7 +145,7 @@ def csvWriter(filename, parsedData):
             allottedID = int(row[0]) + 1
     with open(filename, 'a') as f:
         writer = csv.writer(f)
-        writer.writerow([largestID, parsedData[0], parsedData[1], parsedData[2], parsedData[3]])
+        writer.writerow([allottedID, parsedData[0], parsedData[1], parsedData[2], parsedData[3]])
 
         '''
 
