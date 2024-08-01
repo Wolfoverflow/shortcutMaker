@@ -55,6 +55,8 @@ class KeyLogger:
         if key in self.currentKeys:
             self.currentKeys.remove(key)
 
+            if recording:
+                self.recordedKeys.remove(key)
     def keystrokeRecorder(self, key, recording=False):
         """
         Passes the given key to the appropriate function, returning a shortcut ID or current keystrokes.
@@ -126,8 +128,8 @@ def csvParser(filename):
         for row in reader:
             if row == []:
                 continue
-            id = row[0]
-            keys = (row[1])
+            id = int(row[0])
+            keys = set(eval(row[1]))
             batchCommand = row[2]
             creationDate = row[3]
             name = row[4]
@@ -137,16 +139,16 @@ def csvParser(filename):
     return parsedData
 
 def csvWriter(filename, parsedData):
-    largestID = 0
+    allottedID = 0
     with open(filename, 'r') as f:
         reader = csv.reader(f)
         for row in reader:
             if row == []:
                 continue
-            largestID = int(row[0])
+            allottedID = int(row[0]) + 1
     with open(filename, 'a') as f:
         writer = csv.writer(f)
-        writer.writerow([largestID+1, parsedData[0], parsedData[1], parsedData[2], parsedData[3]])
+        writer.writerow([allottedID, parsedData[1], parsedData[2], parsedData[3], parsedData[4]])
 
         '''
 
