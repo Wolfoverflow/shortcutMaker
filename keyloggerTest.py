@@ -55,8 +55,6 @@ class KeyLogger:
         if key in self.currentKeys:
             self.currentKeys.remove(key)
 
-        if recording and key in self.recordedKeys:
-            self.recordedKeys.remove(key)
     def keystrokeRecorder(self, key, recording=False):
         """
         Passes the given key to the appropriate function, returning a shortcut ID or current keystrokes.
@@ -121,19 +119,20 @@ def stopRecording():
 # | 1          | {'Key.cmd', ';'}  | echo Pass1   | 1/1/2000     | Pass1        |
 # |------------|-------------------|--------------|--------------|--------------|
 
-def csvParser(filename):
+def csvParser(filename, includeRowNumber = False):
     parsedData = []
     with open(filename, 'r') as f:
         reader = csv.reader(f)
         for row in reader:
             if row == []:
                 continue
-            id = int(row[0])
             keys = set(eval(row[1]))
             batchCommand = row[2]
             creationDate = row[3]
             name = row[4]
-            parsedRow = [row, keys, batchCommand, creationDate, name]
+            parsedRow = [keys, batchCommand, creationDate, name]
+            if includeRowNumber:
+                parsedRow.insert(0, int(row[0]))
             parsedData.append(parsedRow)
 
     return parsedData
@@ -148,7 +147,7 @@ def csvWriter(filename, parsedData):
             allottedID = int(row[0]) + 1
     with open(filename, 'a') as f:
         writer = csv.writer(f)
-        writer.writerow([allottedID, parsedData[1], parsedData[2], parsedData[3], parsedData[4]])
+        writer.writerow([allottedID, parsedData[0], parsedData[1], parsedData[2], parsedData[3]])
 
         '''
 
@@ -202,8 +201,8 @@ def editingMode():
     if "y"==input("Create shortcut? (y/n): "):
         name = input("Enter shortcut name: ")
         startRecording()
-        print("Recording started. Please hold shortcut for 5 seconds.")
-        time.sleep(4.5)
+        print("Recording started. Please hold shortcut for 3 seconds.")
+        time.sleep(2.5)
         shortcut = stopRecording()
         time.sleep(0.5)
         print(f"Captured shortcut: {shortcut}")
@@ -218,9 +217,9 @@ def editingMode():
         csvShortcutDeleter("keylogger.csv", id, csvParser("keylogger.csv"))
 
 # Note: The following section will no longer be utilised in the tkinter version.
-while True:
-    try:
-        editingMode() if "y"==input("Edit shortcuts? (y/n): ") else False
-    except KeyboardInterrupt:
-        print("Quitting keylogger...")
-        os.kill(os.getpid(), 9)
+# while True:
+#     try:
+#         editingMode() if "y"==input("Edit shortcuts? (y/n): ") else False
+#     except KeyboardInterrupt:
+#         print("Quitting keylogger...")
+#         os.kill(os.getpid(), 9)
