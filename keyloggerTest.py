@@ -55,8 +55,8 @@ class KeyLogger:
         if key in self.currentKeys:
             self.currentKeys.remove(key)
 
-            if recording:
-                self.recordedKeys.remove(key)
+        if recording and key in self.recordedKeys:
+            self.recordedKeys.remove(key)
     def keystrokeRecorder(self, key, recording=False):
         """
         Passes the given key to the appropriate function, returning a shortcut ID or current keystrokes.
@@ -218,9 +218,9 @@ def editingMode():
         csvShortcutDeleter("keylogger.csv", id, csvParser("keylogger.csv"))
 
 # Note: The following section will no longer be utilised in the tkinter version.
-# while True:
-#     try:
-#         editingMode() if "y"==input("Edit shortcuts? (y/n): ") else False
-#     except KeyboardInterrupt:
-#         print("Quitting keylogger...")
-#         os.kill(os.getpid(), 9)
+while True:
+    try:
+        editingMode() if "y"==input("Edit shortcuts? (y/n): ") else False
+    except KeyboardInterrupt:
+        print("Quitting keylogger...")
+        os.kill(os.getpid(), 9)
