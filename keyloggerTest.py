@@ -137,7 +137,7 @@ def csvParser(filename, includeRowNumber = False):
 
     return parsedData
 
-def csvWriter(filename, parsedData):
+def shortcutWriter(filename, parsedData):
     allottedID = 0
     with open(filename, 'r') as f:
         reader = csv.reader(f)
@@ -196,6 +196,24 @@ thread.start()
 def commandParser(name, command):
     pass
 
+def csvCleaner(filename):
+    with open(filename, 'r+') as f:
+        readLines = []
+        currentID = 0
+        reader = csv.reader(f)
+        writer = csv.writer(f)
+        for row in reader:
+            if row == []:
+                continue
+            if row in readLines:
+                continue
+            if row[0] != currentID:
+                row[0] = currentID
+            readLines.append(row)
+            writer.writerow(row)
+            currentID += 1
+
+
 def editingMode():
     global keystrokes
     if "y"==input("Create shortcut? (y/n): "):
@@ -209,7 +227,7 @@ def editingMode():
         keyLogger.recordedKeys = []
         command = input("Enter action: ")
         shortcutData = [shortcut, command, time.strftime("%d/%m/%Y"), name]
-        csvWriter("keylogger.csv", shortcutData)
+        shortcutWriter("keylogger.csv", shortcutData)
         keystrokes = keystrokeParser(csvParser("keylogger.csv"))
         print("The shortcut has been saved.")
     else:
