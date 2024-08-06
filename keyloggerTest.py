@@ -2,7 +2,7 @@ import os
 try:
     from pynput import keyboard
 except ModuleNotFoundError:
-    os.system("py -m pip install pynput")
+    os.system("python3.11 -m pip install pynput")
     from pynput import keyboard
 import csv
 import time
@@ -26,6 +26,7 @@ class KeyLogger:
 
     def onPress(self, key):
         """
+        Wolfoverflow
         Adds the given key to the currentKeys list if it is not already present.
         If recording is True, also adds the key to the recordedKeys list.
 
@@ -43,6 +44,7 @@ class KeyLogger:
 
     def onRelease(self, key):
         """
+        Wolfoverflow
         Removes the given key from the currentKeys list if it is present.
 
         Parameters:
@@ -57,6 +59,7 @@ class KeyLogger:
 
     def keystrokeRecorder(self, key, recording=False):
         """
+        Wolfoverflow
         Passes the given key to the appropriate function, returning a shortcut ID or current keystrokes.
 
         Parameters:
@@ -83,6 +86,7 @@ class KeyLogger:
 
 def onPress(key):
     """
+    Wolfoverflow
     Adds the given key to the currentKeys list if it is not already present.
 
     Parameters:
@@ -97,20 +101,51 @@ def onPress(key):
         commandRunner(id, csvParser("keylogger.csv"))
 
 def onRelease(key):
+    """
+    Wolfoverflow
+    Release the given key by calling the `onRelease` method of the `keyLogger` object.
+
+    Parameters:
+        key (str): The key to be released.
+
+    Returns:
+        None
+    """
     keyLogger.onRelease(key)
 
 def startRecording():
+    """
+    Wolfoverflow
+    Starts the keylogger recording process.
+
+    Sets the global recording flag to True, indicating that the keylogger is actively recording keystrokes.
+
+    Parameters:
+        None
+
+    Returns:
+        None
+    """
     global recording
     recording = True
 
 def stopRecording():
+    """
+    Wolfoverflow
+    Stop the recording and return the set of recorded keys.
+
+    This function sets the global `recording` variable to `False`, which stops the keylogger from blocking macros
+
+    Returns:
+        set: The set of recorded keys.
+    """
     global recording
     recording = False
     return set(keyLogger.recordedKeys)
 
 # Usage
 # Format for keystrokes:
-#   [[{'Key.ctrl', 'm'}, batchCommand], [{'Key.cmd', ';'}, batchCommand]... ]
+
 
 # # CSV format
 # | shortcutID | keys              | batchCommand | creationDate | shortcutName |
@@ -120,6 +155,17 @@ def stopRecording():
 # |------------|-------------------|--------------|--------------|--------------|
 
 def csvParser(filename, includeRowNumber = False):
+    """
+    Wolfoverflow
+    This function parses a CSV file and returns the data in a structured format.
+
+    Parameters:
+        filename (str): The name of the CSV file to parse.
+        includeRowNumber (bool): An optional parameter to include the row number in the parsed data. Defaults to False.
+
+    Returns:
+        list: A list of lists, where each sublist contains the parsed data for a row in the CSV file.
+    """
     parsedData = []
     with open(filename, 'r') as f:
         reader = csv.reader(f)
@@ -138,6 +184,16 @@ def csvParser(filename, includeRowNumber = False):
     return parsedData
 
 def shortcutWriter(filename, parsedData):
+    """
+    Writes a new row to the given CSV file with the provided parsed data.
+
+    Parameters:
+        filename (str): The name of the CSV file to write to.
+        parsedData (list): A list of data to write to the CSV file.
+
+    Returns:
+        None
+    """
     allottedID = 0
     with open(filename, 'r') as f:
         reader = csv.reader(f)
@@ -149,15 +205,19 @@ def shortcutWriter(filename, parsedData):
         writer = csv.writer(f)
         writer.writerow([allottedID, parsedData[0], parsedData[1], parsedData[2], parsedData[3]])
 
-        '''
-
-        Note that the above code assumes that there is a newline created at the end of the file. Please check the file.
-
-        Lucky me, it works.
-
-        '''
-
 def csvShortcutDeleter(filename, id, parsedData):
+    """
+    Wolfoverflow
+    Deletes a shortcut from the specified CSV file.
+
+    Args:
+        filename (str): The name of the CSV file.
+        id (int): The ID of the shortcut to delete.
+        parsedData (list): The parsed data from the CSV file.
+
+    Returns:
+        None
+    """
     global keystrokes
     correctedID = 0
     with open(filename, 'w') as f:
@@ -174,12 +234,34 @@ def csvShortcutDeleter(filename, id, parsedData):
 
 
 def keystrokeParser(parsedData):
+    """
+    Wolfoverflow
+    Parses the given parsedData and returns a list of keystrokes.
+
+    Parameters:
+        parsedData (list): A list of lists, where each list represents a component of a shortcut.
+
+    Returns:
+        set: A set of keystrokes.
+    """
     keystrokes = []
     for shortcut in parsedData:
         keystrokes.append(shortcut[0])
     return keystrokes
 
 def commandRunner(id, parsedData):
+    """
+    Wolfoverflow
+    Executes the command associated with the given shortcut.
+
+    Parameters:
+        id (int): The ID of the shortcut to execute.
+        parsedData (list): A list of lists, where each list represents a component of a shortcut.
+
+    Returns:
+        None
+    """
+    global recording
     os.system(parsedData[id][1])
 
 keystrokes = keystrokeParser(csvParser("keylogger.csv"))
@@ -187,32 +269,52 @@ keyLogger = KeyLogger(keystrokes)
 
 # Start the listener
 def keyboardListener():
+    """
+    Starts the keyboard listener.
+
+    Parameters:
+        None
+
+    Returns:
+        None
+    """
     with keyboard.Listener(on_press=onPress, on_release=onRelease) as listener:
         listener.join()
 
 thread = threading.Thread(target=keyboardListener)
 thread.start()
 
-def commandParser(name, command):
-    pass
+def shortcutMaker(name, command, shortcut):
+    global keystrokes
+    shortcutData = [shortcut, command, time.strftime("%d/%m/%Y"), name]
+    shortcutWriter("keylogger.csv", shortcutData)
+    keystrokes = keystrokeParser(csvParser("keylogger.csv"))
+
+def shortcutEditor(id, shortcutData):
+    global keystrokes
+    csvShortcutDeleter("keylogger.csv", id, shortcutData)
+    shortcutWriter("keylogger.csv", shortcutData)
+    csvCleaner("keylogger.csv")
+    keystrokes = keystrokeParser(csvParser("keylogger.csv"))
 
 def csvCleaner(filename):
-    with open(filename, 'r+') as f:
-        readLines = []
+    with open(filename, 'r') as r:
+        formattedData = []
         currentID = 0
-        reader = csv.reader(f)
-        writer = csv.writer(f)
+        reader = csv.reader(r)
         for row in reader:
             if row == []:
                 continue
-            if row in readLines:
+            if row in formattedData:
                 continue
             if row[0] != currentID:
                 row[0] = currentID
-            readLines.append(row)
-            writer.writerow(row)
+            formattedData.append(row)
             currentID += 1
 
+        with open(filename, 'w') as w:
+            writer = csv.writer(w)
+            writer.writerows(formattedData)
 
 def editingMode():
     global keystrokes
@@ -241,3 +343,4 @@ def editingMode():
 #     except KeyboardInterrupt:
 #         print("Quitting keylogger...")
 #         os.kill(os.getpid(), 9)
+# csvCleaner("keylogger.csv")
