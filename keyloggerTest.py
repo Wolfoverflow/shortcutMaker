@@ -1,8 +1,9 @@
 import os
+import sys
 try:
     from pynput import keyboard
 except ModuleNotFoundError:
-    os.system("python3.11 -m pip install pynput")
+    os.system(f"{executable} -m pip install pynput")
     from pynput import keyboard
 import csv
 import time
