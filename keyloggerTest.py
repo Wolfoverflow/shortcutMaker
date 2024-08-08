@@ -291,6 +291,25 @@ def shortcutMaker(name, command, shortcut):
     shortcutWriter("keylogger.csv", shortcutData)
     keystrokes = keystrokeParser(csvParser("keylogger.csv"))
 
+def dataDictionary(filename):
+    dataDictionary = {}
+    records = csvParser(filename, True)
+    for record in records:
+        id = record[0]
+        data = record[1::]
+        dataDictionary[id] = data
+    return dataDictionary
+
+def dictionarySplitter(dictionary): # Extra complication by converting to and back from a dictionay
+    keyArray = []                   # After all, why else does this branch exist?
+    valueArray = []
+    for id in dictionary:
+        key = id
+        value = dictionary[id]
+        keyArray.append(key)
+        valueArray.append(value)
+    return keyArray, valueArray
+
 def shortcutEditor(id, shortcutData):
     global keystrokes
     csvShortcutDeleter("keylogger.csv", id, shortcutData)
@@ -298,24 +317,34 @@ def shortcutEditor(id, shortcutData):
     csvCleaner("keylogger.csv")
     keystrokes = keystrokeParser(csvParser("keylogger.csv"))
 
-def csvCleaner(filename):
-    with open(filename, 'r') as r:
-        formattedData = []
-        currentID = 0
-        reader = csv.reader(r)
-        for row in reader:
-            if row == []:
-                continue
-            if row in formattedData:
-                continue
-            if row[0] != currentID:
-                row[0] = currentID
-            formattedData.append(row)
-            currentID += 1
+def selectionSort(value, pair):
+    collection = []
+    
+    length = len(value) # gets len of the list
+    for i in range(length - 1): # Gets the actual length (index form)
+        sortedItems = i
+        for j in range(i + 1, length):
+            if value[j] < value[sortedItems]:
+                sortedItems = j
+        if length != i:
+            value[i], value[sortedItems] = value[sortedItems], value[i]
+            pair[i], pair[sortedItems] = pair[sortedItems], pair[i]
 
-        with open(filename, 'w') as w:
-            writer = csv.writer(w)
-            writer.writerows(formattedData)
+    for id, data in zip(value, pair):
+        data.insert(0, id)
+        data.append(collection)
+        
+    return collection
+
+def csvSorter(filename):
+    return selectionSort(disctionarySplitter(dataDictionary(filename)))
+
+def csvCleaner(filename):
+    sortedData = csvSorter(filename)
+    with open(filename, 'w') as w:
+        writer = csv.writer(w)
+        for formattedData in sortedData:
+            writer.writerow([formattedData[0], formattedData[1], formattedData[2], formattedData[3], formattedData[4]])
 
 def editingMode():
     global keystrokes
